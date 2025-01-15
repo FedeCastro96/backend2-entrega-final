@@ -11,28 +11,6 @@
     "thumbnails": []
   },
   {
-    "id": 2,
-    "title": "Producto de prueba 2",
-    "description": "Este es otro producto de prueba",
-    "code": "ABC124",
-    "price": 300,
-    "status": true,
-    "stock": 15,
-    "category": "test",
-    "thumbnails": []
-  },
-  {
-    "id": 3,
-    "title": "test",
-    "description": "Este es un producto de prueba",
-    "code": "ARR123",
-    "price": 2000,
-    "status": true,
-    "stock": 25,
-    "category": "test",
-    "thumbnails": []
-  },
-  {
     "id": 4,
     "title": "messi",
     "description": "El messi de verdad",
@@ -42,35 +20,5 @@
     "stock": 1,
     "category": "test",
     "thumbnails": []
-  },
-  {
-    "title": "test",
-    "description": "test",
-    "price": "3",
-    "img": "test",
-    "code": "test",
-    "stock": "3",
-    "category": "test",
-    "status": true
-  },
-  {
-    "title": "test",
-    "description": "test",
-    "price": "3",
-    "img": "test",
-    "code": "test",
-    "stock": "3",
-    "category": "test",
-    "status": true
-  },
-  {
-    "title": "test",
-    "description": "test",
-    "price": "3",
-    "img": "test",
-    "code": "test",
-    "stock": "3",
-    "category": "test",
-    "status": true
   }
 ]

@@ -42,11 +42,11 @@ const io = new Server(httpServer);
 
 io.on("connection", async (socket) => {
   console.log("conectado un cliente");
-
+  socket.emit("", "hola pa");
   // Enviar productos iniciales
   try {
     const productos = await manager.getProducts();
-    console.log("Enviando productos:", productos);
+    // console.log("Enviando productos:", productos);
 
     socket.emit("productos", productos);
   } catch (error) {
@@ -72,5 +72,21 @@ io.on("connection", async (socket) => {
   socket.emit("productos", await manager.getProducts());
 
   //elimnar producto
-  socket.on("eliminarProducto", async (id) => console.log(id));
+  socket.on("eliminarProducto", async (id) => {
+    const productManager = new ProductManager("./src/data/products.json");
+    const products = await productManager.getProducts();
+    const productId = parseInt(id);
+    const index = products.findIndex((p) => p.id === productId);
+
+    //Verificar si el producto existe
+    if (index === -1) {
+      socket.emit("res", "Producto no encontrado");
+    }
+    let aux = products[index];
+    // Eliminamos el producto
+    products.splice(index, 1);
+    await productManager.writeFile(products);
+
+    socket.emit("productDeleted", { data: aux });
+  });
 });

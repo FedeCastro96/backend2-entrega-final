@@ -11,6 +11,14 @@ socket.on("productos", (data) => {
   renderProductos(data);
 });
 
+socket.on("productDeleted", (data) => {
+  console.log("log de productDeleted", data);
+});
+
+socket.on("res", (data) => {
+  console.log(data);
+});
+
 // funcion para renderizar productos
 
 const renderProductos = (productos) => {
