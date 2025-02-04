@@ -1,116 +1,172 @@
 import express from "express";
-import fileManager from "../manager/fileManager.js";
-import { readFile } from "fs";
-
-const { FileManager } = fileManager;
+import CartManager from "../managers/cart-manager-db.js";
+import CartModel from "../models/cart.model.js";
 
 const router = express.Router();
-const cartManager = new FileManager("./data/carrito.json");
+const cartManager = new CartManager();
 
-//funcion para generar el id automaticamente:
-const generateId = async () => {
-  const carts = await cartManager.readFile();
-  if (carts.length === 0) return 1;
-  return Math.max(...carts.map((c) => c.id)) + 1;
-};
+// 1) Creamos un nuevo carrito:  ------- POST http://localhost:PUERTO/
 
-//GET/api/carts
-router.get("/", async (req, res) => {
-  try {
-    const carts = await cartManager.readFile();
-    let limit = req.query.limit;
-    if (limit) {
-      res.send(carts.slice(0, limit));
-      //para ver el límite --> http://localhost:8080/api/carts?limit=1
-    } else {
-      res.send(carts);
-      // para ver el array de productos --> http://localhost:8080/api/carts
-    }
-  } catch (error) {
-    res.status(500).json({
-      error: "error al obtener el carrito",
-      message: error.message,
-    });
-  }
-});
-
-//GET /api/carts/:cid
-router.get("/:cid", async (req, res) => {
-  try {
-    const carts = await cartManager.readFile();
-    const cartId = parseInt(req.params.cid);
-
-    const cart = carts.find((c) => c.id === cartId);
-    if (!cart) {
-      return res.status(404).json({
-        error: "Carrito no encontrado",
-      });
-    }
-    res.json;
-  } catch (error) {
-    res.status(500).json({
-      error: "error al obtener el carrito",
-    });
-  }
-});
-
-//POST/api/carts
 router.post("/", async (req, res) => {
   try {
-    const carts = await cartManager.readFile();
-    // Crear nuevo carrito
-    const newCart = {
-      id: await generateId(),
-      products: [],
-    };
-
-    // Agregar el nuevo carrito
-    carts.push(newCart);
-    await cartManager.writeFile(carts);
-
-    res.status(201).json(newCart);
+    const nuevoCarrito = await cartManager.crearCarrito();
+    res.json(nuevoCarrito);
   } catch (error) {
-    res.status(500).json({
-      error: "Error al crear el carrito",
-      message: error.message,
-    });
+    console.error("Error al crear un nuevo carito ", error);
+    res
+      .status(500)
+      .json({ error: "Error interno del servidor al crear carrito" });
   }
 });
 
-// POST /:cid/product/:pid - Agregar producto al carrito
-
-router.post("/:cid/product/:pid", async (req, res) => {
+//2) Listamos los productos que pertenecen a determinado carrito. ------- GET /cart/cid
+router.get("/:cid", async (req, res) => {
+  const cartId = req.params.cid;
   try {
-    const carts = await cartManager.readFile();
-    const cartId = parseInt(req.params.cid);
-    const productId = parseInt(req.params.pid);
+    const carrito = await CartModel.findById(cartId);
 
-    // buscar el carrito
-    const cart = carts.find((c) => c.id === cartId);
-    if (!cart) {
+    if (!carrito) {
+      console.log("no existe el carrito con el id, ", cartId);
       return res.status(404).json({ error: "Carrito no encontrado" });
     }
 
-    // Buscar si el producto ya está en el carrito
-    const productInCart = cart.products.find((p) => p.id === productId);
-    if (productInCart) {
-      // Si el producto ya está, aumentar cantidad
-      productInCart.quantity++;
-    } else {
-      // Si el producto no está, agregarlo con cantidad 1
-      cart.products.push({
-        id: productId,
-        quantity: 1,
-      });
-    }
-    await cartManager.writeFile(carts);
-    res.json(cart);
+    // Enviamos el carrito como respuesta si existe
+    res.json(carrito);
   } catch (error) {
+    console.error("Error al objener el carrito", error);
     res.status(500).json({
-      error: "Error al agregar producto al carrito",
+      error: "error al obtener el carrito",
       message: error.message,
     });
   }
 });
 
-export { router as cartsRouter };
+// 3) Agregar productos a distintos carritos.     ------- POST /:cid/product/:pid
+router.post("/:cid/product/:pid", async (req, res) => {
+  const cartId = req.params.cid;
+  const productId = req.params.pid;
+  const quantity = req.body.quantity || 1;
+
+  try {
+    const actualizarCarrito = await cartManager.agregarProductoAlCarrito(
+      cartId,
+      productId,
+      quantity
+    );
+    res.json(actualizarCarrito.products);
+  } catch (error) {
+    console.error("Error al agregar producto al carrito ", error);
+    console.log(error);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+});
+
+// 4) Eliminamos un producto específico del carrito.  ------- DELETE /:cid/product/:pid
+
+router.delete("/:cid/product/:pid", async (req, res) => {
+  try {
+    const cartId = req.params.cid;
+    const productId = req.params.pid;
+
+    const updatedCart = await cartManager.eliminarProductoDelCarrito(
+      cartId,
+      productId
+    );
+
+    res.json({
+      status: "success",
+      message: "producto eliminado del carrito correctamente",
+      updatedCart,
+    });
+  } catch (error) {
+    console.error("Error al eliminar el producto del carrito", error);
+    res.status(500).json({
+      status: "error",
+      error: "Error interno del servidor",
+    });
+  }
+});
+
+// 5) Actualizamos productos del carrito  ------- PUT /:cid
+router.put("/:cid", async (req, res) => {
+  const cartId = req.params.cid;
+  const updatedProducts = req.body;
+
+  try {
+    const updatedCart = await cartManager.actualizarCarrito(
+      cartId,
+      updatedProducts
+    );
+    res.json(updatedCart);
+  } catch (error) {
+    console.error("Error al actualizar el carrito", error);
+    res.status(500).json({
+      status: "error",
+      error: "Error interno del servidor",
+    });
+  }
+});
+
+// 6) Actualizamos las cantidades de productos      -------- PUT /:cid/product/:pid
+router.put("/:cid/product/:pid", async (req, res) => {
+  try {
+    const cartId = req.params.cid;
+    const productId = req.params.pid;
+    const newQuantity = req.body.quantity;
+
+    const updatedCart = await cartManager.actualizarCantidadDeProducto(
+      cartId,
+      productId,
+      newQuantity
+    );
+
+    res.json({
+      status: "success",
+      message: "Cantidad del producto actualizada correctamente",
+      updatedCart,
+    });
+  } catch (error) {
+    console.error(
+      "Error al actualizar la cantidad del producto en el carrito",
+      error
+    );
+    res.status(500).json({
+      status: "error",
+      error: "Error interno del servidor",
+    });
+  }
+});
+
+// 7) Vaciamos el carrito:      ------------- DELETE /:cid
+router.delete("/:cid", async (req, res) => {
+  try {
+    const cartId = req.params.cid;
+
+    const updatedCart = await cartManager.vaciarCarrito(cartId);
+
+    res.json({
+      status: "success",
+      message:
+        "Todos los productos del carrito fueron eliminados correctamente",
+      updatedCart,
+    });
+  } catch (error) {
+    console.error("Error al vaciar el carrito", error);
+    res.status(500).json({
+      status: "error",
+      error: "Error interno del servidor",
+    });
+  }
+});
+
+//8 ver todos los carritos ------ http://localhost:3000/api/carts/
+router.get("/", async (req, res) => {
+  try {
+    const carritos = await CartModel.find(); // Obtiene todos los carritos
+    res.json(carritos); // Devuelve los carritos en formato JSON
+  } catch (error) {
+    console.error("Error al obtener carritos", error);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+});
+export default router;
