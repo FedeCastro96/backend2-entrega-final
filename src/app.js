@@ -1,33 +1,49 @@
-import express from "express";
-import { engine } from "express-handlebars";
-import "./database.js";
+import dotenv from "dotenv";
+dotenv.config();
 
+import express from "express";
+import handlebars from "express-handlebars";
+import "./database.js";
+import cookieParser from "cookie-parser";
+import passport from "passport";
+
+//importar la config del passport
+import { initializePassportStrategies } from "./config/passport.config.js";
+
+//importar routers
 import productsRouter from "./routes/products.router.js";
+import sessionsRouter from "./routes/sessions.router.js";
 import cartsRouter from "./routes/carts.router.js";
 import viewsRouter from "./routes/views.router.js";
 
 const app = express();
-const PUERTO = 3000;
-
-// Middleware para parsear JSON
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static("src/public"));
+const PUERTO = process.env.PORT || 3000;
 
 //Express handlebars
-app.engine("handlebars", engine());
+app.engine("handlebars", handlebars.engine());
 app.set("view engine", "handlebars");
 app.set("views", "./src/views");
 
-//Rutas
-//-->app.use: Se utiliza para montar middleware o routers y no depende de un método HTTP específico.
-//-->app.get: Define un manejador para solicitudes con el método HTTP específico (GET) y una ruta exacta.
+// Middlewares
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static("src/public"));
+app.use(cookieParser());
 
+//iniciar passport
+initializePassportStrategies();
+app.use(passport.initialize());
+
+//rutas
 app.use("/api/products", productsRouter);
 app.use("/api/carts", cartsRouter);
+app.use("/api/sessions", sessionsRouter);
 app.use("/", viewsRouter);
 
 //iniciar servidor
 app.listen(PUERTO, () => {
   console.log("Escuchando el puerto:", PUERTO);
+  console.log("http://localhost:" + PUERTO);
 });
+
+//Hay un error en register.handlebars, el formulario no se envía.

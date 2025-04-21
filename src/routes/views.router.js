@@ -1,12 +1,31 @@
 import express from "express";
-import ProductManager from "../managers/product-manager-db.js";
-import CartManager from "../managers/cart-manager-db.js";
+import {
+  checkAuth,
+  redirectIfLoggedIn,
+  requireAuth,
+} from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
-const productManager = new ProductManager();
-const cartManager = new CartManager();
 
-router.get("/products", async (req, res) => {
+//Ruta principal - redirige a productos
+router.get("/", (req, res) => {
+  res.redirect("/products");
+});
+
+//Rutas de autenticación
+router.get("/register", redirectIfLoggedIn, (req, res) => {
+  res.render("register");
+});
+
+router.get("/login", redirectIfLoggedIn, (req, res) => {
+  res.render("login");
+});
+
+router.get("/profile", requireAuth, (req, res) => {
+  res.render("profile");
+});
+
+router.get("/products", checkAuth, async (req, res) => {
   try {
     const { page = 1, limit = 5 } = req.query;
     const productos = await productManager.getProducts({
@@ -37,7 +56,7 @@ router.get("/products", async (req, res) => {
   }
 });
 
-router.get("/carts/:cid", async (req, res) => {
+router.get("/carts/:cid", checkAuth, async (req, res) => {
   const cartId = req.params.cid;
 
   try {
