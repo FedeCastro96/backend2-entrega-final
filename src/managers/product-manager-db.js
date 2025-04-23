@@ -27,16 +27,20 @@ class ProductManager {
         return;
       }
 
+      // Si no se proporciona una imagen, usar una imagen por defecto
+      const defaultImage = "https://via.placeholder.com/300x200?text=No+Image";
+      const productImage = image || defaultImage;
+
       const newProduct = new ProductModel({
         title,
         description,
         price,
-        img: image,
+        img: productImage,
         code,
         stock,
         category,
         status: true,
-        thumbnails: thumbnails || [], // Si no se proporcionan imágenes adicionales, se asigna un array vacío
+        thumbnails: thumbnails || [],
       });
 
       // Guardar el nuevo producto en la base de datos

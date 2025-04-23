@@ -1,6 +1,16 @@
 import express from "express";
 import passport from "passport";
 import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+
+// Configure dotenv
+dotenv.config();
+
+// Get JWT_SECRET from environment variables
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET is not defined in environment variables");
+}
 
 const router = express.Router();
 
@@ -11,7 +21,8 @@ const passportJWT = passport.authenticate("jwt", { session: false });
 router.post(
   "/register",
   passport.authenticate("register", {
-    failureRedirect: "/api/sessions/failregister",
+    session: false,
+    failureMessage: true,
   }),
   async (req, res) => {
     try {
@@ -24,15 +35,23 @@ router.post(
   }
 );
 
-router.get("/failregister", (req, res) => {
-  res.status(400).json({ status: "error", error: "Fallo en el registro" });
+// Manejador de error de registro
+router.post("/register", (err, req, res, next) => {
+  if (err) {
+    return res.status(400).json({
+      status: "error",
+      error: err.message || "Error en el registro",
+    });
+  }
+  next();
 });
 
 // Login de usuario
 router.post(
   "/login",
   passport.authenticate("login", {
-    failureRedirect: "/api/sessions/faillogin",
+    session: true,
+    failureMessage: true,
   }),
   async (req, res) => {
     try {
@@ -47,16 +66,16 @@ router.post(
         httpOnly: true,
       });
 
-      res.status(200).json({ status: "success", message: "Login exitoso" });
+      res.status(200).json({
+        status: "success",
+        message: "Login exitoso",
+        token: token,
+      });
     } catch (error) {
       res.status(500).json({ status: "error", error: error.message });
     }
   }
 );
-
-router.get("/faillogin", (req, res) => {
-  res.status(401).json({ status: "error", error: "Fallo en la autenticación" });
-});
 
 // Logout
 router.get("/logout", (req, res) => {

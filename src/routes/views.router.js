@@ -4,8 +4,12 @@ import {
   redirectIfLoggedIn,
   requireAuth,
 } from "../middlewares/auth.middleware.js";
+import ProductManager from "../managers/product-manager-db.js";
+import CartManager from "../managers/cart-manager-db.js";
 
 const router = express.Router();
+const productManager = new ProductManager();
+const cartManager = new CartManager();
 
 //Ruta principal - redirige a productos
 router.get("/", (req, res) => {
@@ -18,7 +22,8 @@ router.get("/register", redirectIfLoggedIn, (req, res) => {
 });
 
 router.get("/login", redirectIfLoggedIn, (req, res) => {
-  res.render("login");
+  const message = req.query.message;
+  res.render("login", { message });
 });
 
 router.get("/profile", requireAuth, (req, res) => {
@@ -27,7 +32,7 @@ router.get("/profile", requireAuth, (req, res) => {
 
 router.get("/products", checkAuth, async (req, res) => {
   try {
-    const { page = 1, limit = 5 } = req.query;
+    const { page = 1, limit = 6 } = req.query;
     const productos = await productManager.getProducts({
       page: parseInt(page),
       limit: parseInt(limit),
@@ -48,11 +53,8 @@ router.get("/products", checkAuth, async (req, res) => {
       totalPages: productos.totalPages,
     });
   } catch (error) {
-    console.error("Error al obtener productos", error);
-    res.status(500).json({
-      status: "error",
-      error: "Error interno del servidor",
-    });
+    console.error("Error al obtener productos:", error);
+    res.status(500).render("error", { error: "Error al cargar los productos" });
   }
 });
 

@@ -1,25 +1,56 @@
-<h1 class="page-title">Productos</h1>
+<div class="container">
+  <h1 class="page-title">Nuestros Productos</h1>
 
-<div class="products-container">
-  {{#each productos}}
-    <div class="product-card">
-      <div class="product-details">
-        <h2 class="product-title">{{title}}</h2>
-        <p class="product-description">{{description}}</p>
-        <p class="product-price">Precio: ${{price}}</p>
-        <p class="product-category">Categoría: {{category}}</p>
-        <button class="add-to-cart-btn">Agregar al carrito</button>
+  <div class="products-container">
+    {{#each productos}}
+      <div class="product-card">
+        {{#if img}}
+          <img src="{{img}}" alt="{{title}}" class="product-image" />
+        {{else}}
+          <div class="product-image-placeholder">
+            <i class="fas fa-image"></i>
+          </div>
+        {{/if}}
+        <div class="product-details">
+          <h2 class="product-title">{{title}}</h2>
+          <p class="product-description">{{description}}</p>
+          <div class="product-info">
+            <p class="product-price">${{price}}</p>
+            <p class="product-category">{{category}}</p>
+          </div>
+          <div class="product-stock">
+            <p>Stock: {{stock}}</p>
+          </div>
+          <button class="add-to-cart-btn" data-product-id="{{_id}}">
+            <i class="fas fa-shopping-cart"></i>
+            Agregar al carrito
+          </button>
+        </div>
       </div>
-    </div>
-  {{/each}}
+    {{/each}}
+  </div>
+
+  <div class="pagination">
+    {{#if hasPrevPage}}
+      <a href="/products?page={{prevPage}}" class="pagination-link">
+        <i class="fas fa-arrow-left"></i>
+        Anterior
+      </a>
+    {{/if}}
+    <p class="pagination-info">Página {{currentPage}} de {{totalPages}}</p>
+    {{#if hasNextPage}}
+      <a href="/products?page={{nextPage}}" class="pagination-link">
+        Siguiente
+        <i class="fas fa-arrow-right"></i>
+      </a>
+    {{/if}}
+  </div>
 </div>
 
-<div class="pagination">
-  {{#if hasPrevPage}}
-    <a href="/products?page={{prevPage}}" class="pagination-link">Anterior</a>
-  {{/if}}
-  <p class="pagination-info">Página {{currentPage}} de {{totalPages}}</p>
-  {{#if hasNextPage}}
-    <a href="/products?page={{nextPage}}" class="pagination-link">Siguiente</a>
-  {{/if}}
-</div>
+<!-- Agregar Font Awesome para los iconos -->
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+/>
+<!-- Agregar nuestro CSS personalizado -->
+<link rel="stylesheet" href="/css/products.css" />

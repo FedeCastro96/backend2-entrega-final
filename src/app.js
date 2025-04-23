@@ -6,6 +6,7 @@ import handlebars from "express-handlebars";
 import "./database.js";
 import cookieParser from "cookie-parser";
 import passport from "passport";
+import session from "express-session";
 
 //importar la config del passport
 import { initializePassportStrategies } from "./config/passport.config.js";
@@ -30,9 +31,22 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static("src/public"));
 app.use(cookieParser());
 
+// Configuración de express-session
+app.use(
+  session({
+    secret: process.env.JWT_SECRET || "your-secret-key",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      maxAge: 1000 * 60 * 60 * 24, // 1 día
+    },
+  })
+);
+
 //iniciar passport
 initializePassportStrategies();
 app.use(passport.initialize());
+app.use(passport.session());
 
 //rutas
 app.use("/api/products", productsRouter);

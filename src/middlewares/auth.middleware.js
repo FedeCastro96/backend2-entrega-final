@@ -18,7 +18,14 @@ export const checkAuth = (req, res, next) => {
       return next(err);
     }
     if (!user) {
-      return res.status(401).json({ error: "No autorizado" });
+      // Si es una petición AJAX o fetch, devolvemos JSON
+      if (req.xhr || req.headers.accept.includes("application/json")) {
+        return res.status(401).json({ error: "No autorizado" });
+      }
+      // Si es una petición normal del navegador, redirigimos a login con mensaje
+      return res.redirect(
+        "/login?message=Por favor, inicia sesión para acceder a los productos"
+      );
     }
     req.user = user;
     return next();
