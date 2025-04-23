@@ -1,14 +1,3 @@
-// Mostrar mensaje de la URL si existe
-const urlParams = new URLSearchParams(window.location.search);
-const message = urlParams.get("message");
-if (message) {
-  const alertDiv = document.createElement("div");
-  alertDiv.className = "alert alert-info";
-  alertDiv.role = "alert";
-  alertDiv.textContent = message;
-  document.querySelector("h1").after(alertDiv);
-}
-
 // Manejar el envío del formulario de login
 document.getElementById("loginForm").addEventListener("submit", async (e) => {
   e.preventDefault();
