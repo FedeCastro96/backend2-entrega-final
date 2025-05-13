@@ -16,6 +16,7 @@ import productsRouter from "./routes/products.router.js";
 import sessionsRouter from "./routes/sessions.router.js";
 import cartsRouter from "./routes/carts.router.js";
 import viewsRouter from "./routes/views.router.js";
+import passwordRouter from "./routes/password.router.js";
 
 const app = express();
 const PUERTO = process.env.PORT || 3000;
@@ -53,6 +54,7 @@ app.use("/api/products", productsRouter);
 app.use("/api/carts", cartsRouter);
 app.use("/api/sessions", sessionsRouter);
 app.use("/", viewsRouter);
+app.use("/api/password", passwordRouter);
 
 //iniciar servidor
 app.listen(PUERTO, () => {
@@ -60,4 +62,9 @@ app.listen(PUERTO, () => {
   console.log("http://localhost:" + PUERTO);
 });
 
-//Hay un error en register.handlebars, el formulario no se envía.
+/** NOTAS
+ * Hay un error en register.handlebars, el formulario no se envía. -> creo que ya está arreglado
+ *EMAIL_USER=tuemail@gmail.com
+ * EMAIL_PASSWORD=abcd efgh ijkl mnop  # La contraseña de aplicación que te dio Google
+ * conversación con claude: https://claude.ai/chat/8005e885-4beb-4846-b057-90abe628e3da
+ */

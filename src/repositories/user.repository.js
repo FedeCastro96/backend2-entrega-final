@@ -1,11 +1,17 @@
 import User from "../dao/models/user.model.js";
+import {
+  UserResponseDTO,
+  UserCreateDTO,
+  UserUpdateDTO,
+} from "../dtos/user.dto.js";
 
 class UserRepository {
   async create(userData) {
     try {
-      const newUser = new User(userData);
+      const userCreateDTO = new UserCreateDTO(userData);
+      const newUser = new User(userCreateDTO);
       await newUser.save();
-      return newUser;
+      return new UserResponseDTO(newUser);
     } catch (error) {
       throw new Error(`Error al crear el usuario: ${error.message}`);
     }
@@ -14,7 +20,7 @@ class UserRepository {
   async findAll() {
     try {
       const users = await User.find();
-      return users;
+      return users.map((user) => new UserResponseDTO(user));
     } catch (error) {
       throw new Error(`Error al obtener todos los usuarios: ${error.message}`);
     }
@@ -26,7 +32,7 @@ class UserRepository {
       if (!user) {
         throw new Error(`No se encontró ningún usuario con el ID: ${id}`);
       }
-      return user;
+      return new UserResponseDTO(user);
     } catch (error) {
       throw new Error(`Error al buscar usuario por ID: ${error.message}`);
     }
@@ -112,4 +118,4 @@ class UserRepository {
   }
 }
 
-export default UserRepository;
+export default new UserRepository();

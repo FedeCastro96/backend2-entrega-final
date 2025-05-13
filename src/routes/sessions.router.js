@@ -2,6 +2,7 @@ import express from "express";
 import passport from "passport";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import { UserResponseDTO } from "../dtos/user.dto.js";
 
 // Configure dotenv
 dotenv.config();
@@ -30,7 +31,12 @@ router.post(
         .status(201)
         .json({ status: "success", message: "Usuario registrado con éxito" });
     } catch (error) {
-      res.status(500).json({ status: "error", error: error.message });
+      console.error("Error en registro de usuario:", error);
+      res.status(500).json({
+        status: "error",
+        message: "Error al registrar el usuario",
+        details: error.message,
+      });
     }
   }
 );
@@ -38,9 +44,11 @@ router.post(
 // Manejador de error de registro
 router.post("/register", (err, req, res, next) => {
   if (err) {
+    console.error("Error de validación en registro:", err);
     return res.status(400).json({
       status: "error",
-      error: err.message || "Error en el registro",
+      message: "Error en el proceso de registro",
+      details: err.message,
     });
   }
   next();
@@ -72,31 +80,44 @@ router.post(
         token: token,
       });
     } catch (error) {
-      res.status(500).json({ status: "error", error: error.message });
+      console.error("Error en proceso de login:", error);
+      res.status(500).json({
+        status: "error",
+        message: "Error al iniciar sesión",
+        details: error.message,
+      });
     }
   }
 );
 
 // Logout
 router.get("/logout", (req, res) => {
-  res.clearCookie("authToken");
-  res.status(200).json({ status: "success", message: "Logout exitoso" });
+  try {
+    res.clearCookie("authToken");
+    res.status(200).json({ status: "success", message: "Logout exitoso" });
+  } catch (error) {
+    console.error("Error en proceso de logout:", error);
+    res.status(500).json({
+      status: "error",
+      message: "Error al cerrar sesión",
+      details: error.message,
+    });
+  }
 });
 
 // Ruta current para validar usuario logueado
 router.get("/current", passportJWT, (req, res) => {
-  // Si llegamos aquí, el usuario está autenticado
-  const user = {
-    id: req.user._id,
-    first_name: req.user.first_name,
-    last_name: req.user.last_name,
-    email: req.user.email,
-    age: req.user.age,
-    cart: req.user.cart,
-    role: req.user.role,
-  };
-
-  res.status(200).json({ status: "success", payload: user });
+  try {
+    const userDTO = new UserResponseDTO(req.user);
+    res.status(200).json({ status: "success", payload: userDTO });
+  } catch (error) {
+    console.error("Error al obtener información del usuario actual:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "Error al obtener la información del usuario actual",
+      details: error.message,
+    });
+  }
 });
 
 export default router;

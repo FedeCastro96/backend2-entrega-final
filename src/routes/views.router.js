@@ -88,4 +88,12 @@ router.get("/carts/:cid", checkAuth, async (req, res) => {
   }
 });
 
+router.get("/forgot-password", (req, res) => {
+  res.render("forgot-password");
+});
+
+router.get("/reset-password/:token", (req, res) => {
+  res.render("reset-password");
+});
+
 export default router;
