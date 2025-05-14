@@ -63,8 +63,13 @@ app.listen(PUERTO, () => {
 });
 
 /** NOTAS
- * Hay un error en register.handlebars, el formulario no se envía. -> creo que ya está arreglado
- *EMAIL_USER=tuemail@gmail.com
- * EMAIL_PASSWORD=abcd efgh ijkl mnop  # La contraseña de aplicación que te dio Google
- * conversación con claude: https://claude.ai/chat/8005e885-4beb-4846-b057-90abe628e3da
+
+  * falta verificar que solo los usuarios normales pueden agregar productos a su carrito
+ 
+  * Arquitectura Profesional:
+  Aplicar una arquitectura más profesional en el servidor, utilizando patrones de diseño, manejo de variables de entorno y técnicas avanzadas como mailing.
+
+
+  * Mejora en la Lógica de Compra:
+  Profundizar en los roles de los usuarios y las autorizaciones aplicables a cada rol en el contexto de las compras dentro del ecommerce.
  */

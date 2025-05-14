@@ -7,7 +7,8 @@ export const isAdmin = (req, res, next) => {
   }
   return res.status(403).json({
     status: "error",
-    error: "Acceso denegado. Se requiere rol de administrador.",
+    message:
+      "Acceso denegado. Se requiere rol de administrador para realizar esta acción",
   });
 };
 
@@ -15,24 +16,57 @@ export const isAdmin = (req, res, next) => {
 export const checkAuth = (req, res, next) => {
   passport.authenticate("jwt", { session: false }, (err, user) => {
     if (err) {
-      return next(err);
+      return res.status(500).json({
+        status: "error",
+        message: "Error en la autenticación",
+        details: err.message,
+      });
     }
     if (!user) {
-      // Si es una petición AJAX o fetch, devolvemos JSON
-      if (req.xhr || req.headers.accept.includes("application/json")) {
-        return res.status(401).json({ error: "No autorizado" });
+      // Verificar si la petición es una API o una vista
+      if (req.path.startsWith("/api/")) {
+        return res.status(401).json({
+          status: "error",
+          message:
+            "No autorizado. Debe iniciar sesión para acceder a este recurso",
+        });
+      } else {
+        // Si es una petición de vista, redirigir al login
+        return res.redirect("/login");
       }
-      // Si es una petición normal del navegador, redirigimos a login con mensaje
-      return res.redirect(
-        "/login?message=Por favor, inicia sesión para acceder a los productos"
-      );
     }
     req.user = user;
     return next();
   })(req, res, next);
 };
 
-//Middleware para redirigir a la página de login si no está autenticado
+// Middleware para verificar si es un usuario normal (no admin)
+export const isUser = (req, res, next) => {
+  if (req.user && req.user.role === "user") {
+    return next();
+  }
+  return res.status(403).json({
+    status: "error",
+    error: "Acceso denegado. Se requiere rol de usuario.",
+  });
+};
+
+// Middleware para verificar si el usuario es el propietario del carrito
+export const isCartOwner = (req, res, next) => {
+  if (
+    req.user &&
+    req.user.cart &&
+    req.user.cart.toString() === req.params.cid
+  ) {
+    return next();
+  }
+  return res.status(403).json({
+    status: "error",
+    error: "Acceso denegado. No eres el propietario de este carrito.",
+  });
+};
+
+// Middleware para redirigir a la página de login si no está autenticado
 export const redirectIfLoggedIn = (req, res, next) => {
   passport.authenticate("jwt", { session: false }, (err, user) => {
     if (err) {
@@ -45,7 +79,7 @@ export const redirectIfLoggedIn = (req, res, next) => {
   })(req, res, next);
 };
 
-//Middleare para requerir autentcación
+// Middleware para requerir autenticación
 export const requireAuth = (req, res, next) => {
   passport.authenticate("jwt", { session: false }, (err, user) => {
     if (err) {

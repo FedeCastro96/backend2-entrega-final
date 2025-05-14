@@ -1,13 +1,18 @@
 import express from "express";
 import CartManager from "../managers/cart-manager-db.js";
 import CartModel from "../dao/models/cart.model.js";
+import {
+  checkAuth,
+  isAdmin,
+  isCartOwner,
+} from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 const cartManager = new CartManager();
 
 // 1) Creamos un nuevo carrito:  ------- POST http://localhost:PUERTO/
 
-router.post("/", async (req, res) => {
+router.post("/", checkAuth, isAdmin, async (req, res) => {
   try {
     const nuevoCarrito = await cartManager.crearCarrito();
     res.json(nuevoCarrito);
@@ -20,7 +25,7 @@ router.post("/", async (req, res) => {
 });
 
 //2) Listamos los productos que pertenecen a determinado carrito. ------- GET /cart/cid
-router.get("/:cid", async (req, res) => {
+router.get("/:cid", checkAuth, isAdmin, async (req, res) => {
   const cartId = req.params.cid;
   try {
     const carrito = await CartModel.findById(cartId);
@@ -42,7 +47,7 @@ router.get("/:cid", async (req, res) => {
 });
 
 // 3) Agregar productos a distintos carritos.     ------- POST /:cid/product/:pid
-router.post("/:cid/product/:pid", async (req, res) => {
+router.post("/:cid/product/:pid", checkAuth, isCartOwner, async (req, res) => {
   const cartId = req.params.cid;
   const productId = req.params.pid;
   const quantity = req.body.quantity || 1;
@@ -62,33 +67,37 @@ router.post("/:cid/product/:pid", async (req, res) => {
 });
 
 // 4) Eliminamos un producto específico del carrito.  ------- DELETE /:cid/product/:pid
+router.delete(
+  "/:cid/product/:pid",
+  checkAuth,
+  isCartOwner,
+  async (req, res) => {
+    try {
+      const cartId = req.params.cid;
+      const productId = req.params.pid;
 
-router.delete("/:cid/product/:pid", async (req, res) => {
-  try {
-    const cartId = req.params.cid;
-    const productId = req.params.pid;
+      const updatedCart = await cartManager.eliminarProductoDelCarrito(
+        cartId,
+        productId
+      );
 
-    const updatedCart = await cartManager.eliminarProductoDelCarrito(
-      cartId,
-      productId
-    );
-
-    res.json({
-      status: "success",
-      message: "producto eliminado del carrito correctamente",
-      updatedCart,
-    });
-  } catch (error) {
-    console.error("Error al eliminar el producto del carrito", error);
-    res.status(500).json({
-      status: "error",
-      error: "Error interno del servidor",
-    });
+      res.json({
+        status: "success",
+        message: "producto eliminado del carrito correctamente",
+        updatedCart,
+      });
+    } catch (error) {
+      console.error("Error al eliminar el producto del carrito", error);
+      res.status(500).json({
+        status: "error",
+        error: "Error interno del servidor",
+      });
+    }
   }
-});
+);
 
 // 5) Actualizamos productos del carrito  ------- PUT /:cid
-router.put("/:cid", async (req, res) => {
+router.put("/:cid", checkAuth, isCartOwner, async (req, res) => {
   const cartId = req.params.cid;
   const updatedProducts = req.body;
 
@@ -108,7 +117,7 @@ router.put("/:cid", async (req, res) => {
 });
 
 // 6) Actualizamos las cantidades de productos      -------- PUT /:cid/product/:pid
-router.put("/:cid/product/:pid", async (req, res) => {
+router.put("/:cid/product/:pid", checkAuth, isCartOwner, async (req, res) => {
   try {
     const cartId = req.params.cid;
     const productId = req.params.pid;
@@ -138,7 +147,7 @@ router.put("/:cid/product/:pid", async (req, res) => {
 });
 
 // 7) Vaciamos el carrito:      ------------- DELETE /:cid
-router.delete("/:cid", async (req, res) => {
+router.delete("/:cid", checkAuth, isCartOwner, async (req, res) => {
   try {
     const cartId = req.params.cid;
 
@@ -160,7 +169,7 @@ router.delete("/:cid", async (req, res) => {
 });
 
 //8 ver todos los carritos ------ http://localhost:3000/api/carts/
-router.get("/", async (req, res) => {
+router.get("/", checkAuth, isAdmin, async (req, res) => {
   try {
     const carritos = await CartModel.find(); // Obtiene todos los carritos
     res.json(carritos); // Devuelve los carritos en formato JSON

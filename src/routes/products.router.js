@@ -1,5 +1,6 @@
 import express from "express";
 import ProductManager from "../managers/product-manager-db.js";
+import { checkAuth, isAdmin } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 const productManager = new ProductManager();
@@ -68,7 +69,7 @@ router.get("/:pid", async (req, res) => {
 });
 
 // 3) Agregar nuevo producto ----------  POST http://localhost:3000/
-router.post("/", async (req, res) => {
+router.post("/", checkAuth, isAdmin, async (req, res) => {
   try {
     const nuevoProducto = await productManager.addProduct(req.body);
     res.status(201).json({
@@ -84,7 +85,7 @@ router.post("/", async (req, res) => {
 });
 
 // 4) Actualiczar por ID
-router.put("/:pid", async (req, res) => {
+router.put("/:pid", checkAuth, isAdmin, async (req, res) => {
   const id = req.params.pid;
   const productoActualizado = req.body;
 
@@ -102,7 +103,7 @@ router.put("/:pid", async (req, res) => {
 });
 
 // 5) Eliminar producto:
-router.delete("/:pid", async (req, res) => {
+router.delete("/:pid", checkAuth, isAdmin, async (req, res) => {
   const id = req.params.pid;
 
   try {

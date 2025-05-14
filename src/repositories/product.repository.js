@@ -86,11 +86,6 @@ class ProductRepository {
   async findByCode(code) {
     try {
       const product = await ProductModel.findOne({ code: code });
-      if (!product) {
-        throw new Error(
-          `No se encontró ningún producto con el código: ${code}`
-        );
-      }
       return product;
     } catch (error) {
       throw new Error(`Error al buscar producto por código: ${error.message}`);

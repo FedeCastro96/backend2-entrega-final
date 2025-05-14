@@ -14,13 +14,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         // Usar result.payload en lugar de result.user
         const cartId = result.payload?.cart;
+        const userRole = result.payload?.role; // Obtenemos el rol del usuario
         console.log("ID del carrito:", cartId);
+        console.log("Rol del usuario:", userRole);
 
         authNav.innerHTML = `
           <div class="d-flex">
-          <a class="nav-link" href="/carts/${cartId || ""}"> 🛒</a>
-          <span class="nav-link">|</span>  
-          <a class="nav-link" href="/profile">Perfil</a>
+            <a class="nav-link" href="/carts/${cartId || ""}"> 🛒</a>
+            <span class="nav-link">|</span>  
+            <a class="nav-link" href="/profile">Perfil (${userRole})</a>
             <span class="nav-link">|</span>
             <a class="nav-link logout-link" href="#">Cerrar sesión</a>
           </div>
