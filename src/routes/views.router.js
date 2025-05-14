@@ -32,28 +32,23 @@ router.get("/profile", requireAuth, (req, res) => {
 
 router.get("/products", checkAuth, async (req, res) => {
   try {
-    const { page = 1, limit = 6 } = req.query;
-    const productos = await productManager.getProducts({
-      page: parseInt(page),
-      limit: parseInt(limit),
-    });
-
-    const nuevoArray = productos.docs.map((producto) => {
-      return producto.toObject();
-    });
+    const result = await productManager.getProducts();
+    // Convertir los documentos de Mongoose a objetos planos
+    const productos = result.docs.map((doc) => doc.toObject());
 
     res.render("products", {
-      productos: nuevoArray,
-      hasPrevPage: productos.hasPrevPage,
-      hasNextPage: productos.hasNextPage,
-      prevPage: productos.prevPage,
-      nextPage: productos.nextPage,
-      currentPage: productos.page,
-      totalPages: productos.totalPages,
+      productos: productos,
+      isAdmin: req.user.role === "admin",
+      hasPrevPage: result.hasPrevPage,
+      hasNextPage: result.hasNextPage,
+      currentPage: result.page,
+      totalPages: result.totalPages,
+      prevPage: result.prevPage,
+      nextPage: result.nextPage,
     });
   } catch (error) {
     console.error("Error al obtener productos:", error);
-    res.status(500).render("error", { error: "Error al cargar los productos" });
+    res.status(500).json({ error: "Error interno del servidor" });
   }
 });
 
