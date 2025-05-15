@@ -25,9 +25,17 @@ router.post("/", checkAuth, isAdmin, async (req, res) => {
 });
 
 //2) Listamos los productos que pertenecen a determinado carrito. ------- GET /cart/cid
-router.get("/:cid", checkAuth, isAdmin, async (req, res) => {
+router.get("/:cid", checkAuth, async (req, res) => {
   const cartId = req.params.cid;
   try {
+    // Verificar si el usuario es el propietario del carrito o es admin
+    if (req.user.role !== "admin" && req.user.cart.toString() !== cartId) {
+      return res.status(403).json({
+        status: "error",
+        error: "No tienes permiso para ver este carrito",
+      });
+    }
+
     const carrito = await CartModel.findById(cartId);
 
     if (!carrito) {
@@ -38,7 +46,7 @@ router.get("/:cid", checkAuth, isAdmin, async (req, res) => {
     // Enviamos el carrito como respuesta si existe
     res.json(carrito);
   } catch (error) {
-    console.error("Error al objener el carrito", error);
+    console.error("Error al obtener el carrito", error);
     res.status(500).json({
       error: "error al obtener el carrito",
       message: error.message,
@@ -178,4 +186,21 @@ router.get("/", checkAuth, isAdmin, async (req, res) => {
     res.status(500).json({ error: "Error interno del servidor" });
   }
 });
+
+//9 Procesar compra del carrito ------ POST /:cid/purchase
+router.post("/:cid/purchase", checkAuth, isCartOwner, async (req, res) => {
+  try {
+    const cartId = req.params.cid;
+    const resultado = await cartManager.procesarCompra(cartId);
+    res.json(resultado);
+  } catch (error) {
+    console.error("Error al procesar la compra:", error);
+    res.status(500).json({
+      status: "error",
+      error: "Error al procesar la compra",
+      message: error.message,
+    });
+  }
+});
+
 export default router;

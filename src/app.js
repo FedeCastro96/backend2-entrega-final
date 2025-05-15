@@ -62,10 +62,7 @@ app.listen(PUERTO, () => {
   console.log("http://localhost:" + PUERTO);
 });
 
-/** NOTAS
-
-  * falta verificar que solo los usuarios normales pueden agregar productos a su carrito
- 
+/** NOTAS 
   * Arquitectura Profesional:
   Aplicar una arquitectura más profesional en el servidor, utilizando patrones de diseño, manejo de variables de entorno y técnicas avanzadas como mailing.
 

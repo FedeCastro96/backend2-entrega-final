@@ -13,7 +13,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (!productId) {
         console.error("No se encontró el ID del producto en el botón");
-        alert("Error: No se pudo identificar el producto");
         return;
       }
 
@@ -31,6 +30,13 @@ document.addEventListener("DOMContentLoaded", () => {
           // Construir la URL con el ID del producto
           const url = `/api/carts/${cartId}/product/${productId}`;
           console.log("URL de la petición:", url);
+
+          // Guardar el texto original del botón
+          const originalText = button.textContent;
+
+          // Cambiar el texto del botón a "Agregando..."
+          button.textContent = "Agregando...";
+          button.disabled = true;
 
           // Agregar el producto al carrito
           const response = await fetch(url, {
@@ -55,14 +61,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
           const result = await response.json();
           console.log("Producto agregado al carrito:", result);
-          alert("Producto agregado al carrito exitosamente");
+
+          // Cambiar el texto del botón a "¡Agregado!"
+          button.textContent = "¡Agregado!";
+          button.style.backgroundColor = "#218838";
+
+          // Actualizar el contador del carrito
+          if (window.updateCartCounter) {
+            await window.updateCartCounter(cartId);
+          }
+
+          // Restaurar el botón después de 1.5 segundos
+          setTimeout(() => {
+            button.textContent = originalText;
+            button.style.backgroundColor = "";
+            button.disabled = false;
+          }, 1500);
         } else {
           console.error("No se encontró el carrito del usuario:", userData);
-          alert("Error: No se encontró el carrito del usuario");
         }
       } catch (error) {
         console.error("Error al agregar el producto al carrito:", error);
-        alert("Error al agregar el producto al carrito: " + error.message);
+        // Restaurar el botón en caso de error
+        button.textContent = originalText;
+        button.disabled = false;
       }
     });
   });

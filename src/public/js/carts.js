@@ -74,16 +74,36 @@ async function checkout() {
     const result = await response.json();
 
     if (result.status === "success") {
-      alert("¡Compra realizada con éxito!");
-      window.location.href = "/profile"; // Redirigir al perfil o a una página de confirmación
+      // Mostrar mensaje de éxito con los productos comprados
+      const mensaje = `¡Compra realizada con éxito!\n\nProductos comprados:\n${result.productosComprados
+        .map((p) => `- ${p.title} (${p.quantity} unidades)`)
+        .join("\n")}`;
+      alert(mensaje);
+      // Recargar la página para mostrar el carrito vacío
+      window.location.reload();
+    } else if (result.status === "error" && result.productosSinStock) {
+      // Mostrar mensaje de error con los productos sin stock
+      const mensaje = `No se pudo completar la compra. Los siguientes productos no tienen stock suficiente:\n\n${result.productosSinStock
+        .map((p) => `- ${p.title}`)
+        .join("\n")}`;
+      alert(mensaje);
     } else {
-      throw new Error(result.error || "Error al procesar la compra");
+      throw new Error(result.message || "Error al procesar la compra");
     }
   } catch (error) {
     console.error("Error:", error);
     alert("Error al procesar la compra: " + error.message);
+  } finally {
     checkoutBtn.disabled = false;
     checkoutBtn.innerHTML =
       '<i class="fas fa-shopping-cart"></i> Comprar ahora';
   }
+}
+
+// Función para mostrar mensaje de error de stock
+function showStockError(productsWithoutStock) {
+  const message = `Los siguientes productos no tienen stock suficiente:\n${productsWithoutStock
+    .map((p) => `- ${p.title}`)
+    .join("\n")}`;
+  alert(message);
 }
